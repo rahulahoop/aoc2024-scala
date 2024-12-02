@@ -48,4 +48,5 @@ build/
 ### Scala ###
 .bsp/
 
+src/main/resources/day_one.txt
 src/main/resources/*
