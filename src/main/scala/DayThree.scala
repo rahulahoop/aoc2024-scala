@@ -8,7 +8,10 @@ object DayThree extends App {
 
   def partOne(input: String): Int = {
     pattern.findAllIn(input).foldLeft(0) { (acc, next) =>
-      acc + next.replace("mul(", "").replace(")", "").split(',').map(_.toInt).product
+      val add = next match
+        case s"mul($a, $b)" => a.toInt * b.toInt
+        case _ => 0
+      acc + add
     }
   }
 
@@ -19,8 +22,8 @@ object DayThree extends App {
       next match
         case "don't()" => (acc, true)
         case "do()" => (acc, false)
-        case s if !shouldIgnore =>
-          (acc + s.replace("mul(", "").replace(")", "").split(',').map(_.toInt).product, shouldIgnore)
+        case s"mul($a, $b)" if !shouldIgnore =>
+          (acc + (a.toInt * b.toInt), shouldIgnore)
         case _ => (acc, shouldIgnore)
     }
 
