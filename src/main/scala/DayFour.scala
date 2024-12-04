@@ -1,5 +1,3 @@
-import scala.collection.immutable.{AbstractSeq, LinearSeq}
-
 object DayFour extends App {
 
   private val input = io.Source.fromResource("day_four.txt").mkString.split("\n").toSeq
