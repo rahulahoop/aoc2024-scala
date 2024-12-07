@@ -1,43 +1,48 @@
-import scala.annotation.tailrec
-
 object DayFive extends App {
+  private val input = io.Source.fromResource("day_five.txt").getLines().toSeq
 
-
-  private val input = io.Source.fromResource("day_five.txt").mkString.split("\n").toSeq
+  private def createOrder(rules: Seq[String]) = rules.foldLeft(Map.empty[String, Seq[String]])((acc, next) => {
+    val Array(key, nbf) = next.split('|')
+    val lOrEm = acc.getOrElse(key, Seq.empty) :+ nbf
+    acc + (key -> lOrEm)
+  })
 
   def partOne(rules: Seq[String], updates: Seq[String]) = {
-    val order = rules.foldLeft(Map.empty[String, Seq[String]])((acc, next) => {
-      val Array(key, nbf) = next.split('|')
-      val lOrEm = acc.getOrElse(key, Seq.empty) :+ nbf
-      acc + (key -> lOrEm)
-    })
+    val order = createOrder(rules)
 
     updates.filter(s => {
-      @tailrec
-      def sublistContains(h: Option[String], t: Seq[String]): Boolean = {
-        h match
-          case Some(key) =>
-            if t.isEmpty then true
-            else if order.getOrElse(key, Seq.empty).intersect(t).isEmpty then
-              sublistContains(t.headOption, t.tail)
-            else
-              false
-          case None => true
-      }
-
-      val checkOrder = s.split(',').reverse.toSeq
-      sublistContains(checkOrder.headOption, checkOrder.tail)
+      s.split(',')
+        .reverse
+        .toSeq
+        .tails
+        .forall(t => t == Nil || order.getOrElse(t.head, Seq.empty).intersect(t.tail).isEmpty)
     }).map(s =>
       val arr = s.split(',').toSeq
-      val pad = if arr.length % 2 == 0 then -1 else 0
-      val mid = arr.length / 2 + pad
-      arr.zipWithIndex.filter((x, i) => i == mid).head._1.toInt
+      arr(arr.size / 2).toInt
     ).sum
+  }
+
+  def partTwo(rules: Seq[String], updates: Seq[String]) = {
+    val order = createOrder(rules)
+
+    updates
+      .filterNot(s => {
+        s.split(',')
+          .reverse
+          .toSeq
+          .tails
+          .forall(t => t == Nil || order.getOrElse(t.head, Seq.empty).intersect(t.tail).isEmpty)
+      })
+      .map(s => s.split(',').toSeq.sortWith((a, b) => {
+        order.getOrElse(b, Seq.empty).contains(a)
+      }))
+      .map(arr => arr(arr.size / 2).toInt).sum
   }
 
   private val i = input.indexWhere(s => s.isBlank)
   private val (rules, updates) = input.splitAt(i)
   println(s"result for part one is ${partOne(rules, updates.tail)}")
+  println(s"result for part two is ${partTwo(rules, updates.tail)}")
 
   /* Tests */
 
@@ -78,5 +83,13 @@ object DayFive extends App {
     assert(partOne(one, two.tail) == 143)
   }
 
+  def testPartTwo(): Unit = {
+    val s = testInput.split("\n").toSeq
+    val i = s.indexWhere(s => s.isBlank)
+    val (one, two) = s.splitAt(i)
+    assert(partTwo(one, two.tail) == 123)
+  }
+
   testPartOne()
+  testPartTwo()
 }
